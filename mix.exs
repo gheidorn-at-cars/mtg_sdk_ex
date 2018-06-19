@@ -9,7 +9,14 @@ defmodule MtgSdkEx.MixProject do
       start_permanent: Mix.env() == :prod,
       description: description(),
       package: package(),
-      deps: deps()
+      deps: deps(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
+      ]
     ]
   end
 
@@ -41,7 +48,8 @@ defmodule MtgSdkEx.MixProject do
   defp deps do
     [
       {:poison, "~> 3.1"},
-      {:httpoison, "~> 1.1"}
+      {:httpoison, "~> 1.1"},
+      {:excoveralls, "~> 0.8", only: :test}
     ]
   end
 end
