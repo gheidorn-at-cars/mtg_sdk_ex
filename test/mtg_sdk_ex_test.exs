@@ -25,7 +25,11 @@ defmodule MtgSdkExTest do
            }
   end
 
-  test "can't find the card and returns an error" do
-    assert MtgSdkEx.artist(111_111_111) == {:error, "Card not found"}
+  test "can't find the card and return an error" do
+    assert MtgSdkEx.artist(111_111_111) == {:error, "Resource not found"}
+  end
+
+  test "can't find the set and return an error" do
+    assert MtgSdkEx.set(1) == {:error, "Resource not found"}
   end
 end
