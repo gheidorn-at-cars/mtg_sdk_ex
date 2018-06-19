@@ -1,5 +1,5 @@
 defmodule MtgSdkEx do
-  alias MtgSdkEx.MagicCard
+  require Logger
 
   @moduledoc """
   Documentation for MtgSdkEx.
@@ -24,11 +24,17 @@ defmodule MtgSdkEx do
 
     case HTTPoison.get(url) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        IO.puts(body)
+        Logger.info(fn ->
+          IO.puts(body)
+        end)
+
         Poison.decode!(body)["card"]["artist"]
 
       {:ok, %HTTPoison.Response{status_code: 400}} ->
-        IO.puts("Bad request :(")
+        Logger.error(fn ->
+          IO.puts("Bad request :(")
+        end)
+
         {:error, "Bad request"}
 
       {:ok, %HTTPoison.Response{status_code: 403}} ->
@@ -36,8 +42,11 @@ defmodule MtgSdkEx do
         {:error, "Rate limit exceeded"}
 
       {:ok, %HTTPoison.Response{status_code: 404}} ->
-        IO.puts("Not found :(")
-        {:error, "Card not found"}
+        Logger.info(fn ->
+          IO.puts("Not found :(")
+        end)
+
+        {:error, "Resource not found"}
 
       {:ok, %HTTPoison.Response{status_code: 500}} ->
         IO.puts("Internal server error at magicthegathering.io :(")
@@ -61,6 +70,10 @@ defmodule MtgSdkEx do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         set = Poison.decode!(body)["set"]
 
+        Logger.info(fn ->
+          IO.puts(set)
+        end)
+
         %MagicSet{
           block: set["block"],
           border: set["border"],
@@ -74,7 +87,10 @@ defmodule MtgSdkEx do
         }
 
       {:ok, %HTTPoison.Response{status_code: 400}} ->
-        IO.puts("Bad request :(")
+        Logger.info(fn ->
+          IO.puts("Bad request :(")
+        end)
+
         {:error, "Bad request"}
 
       {:ok, %HTTPoison.Response{status_code: 403}} ->
@@ -82,8 +98,11 @@ defmodule MtgSdkEx do
         {:error, "Rate limit exceeded"}
 
       {:ok, %HTTPoison.Response{status_code: 404}} ->
-        IO.puts("Not found :(")
-        {:error, "Card not found"}
+        Logger.info(fn ->
+          IO.puts("Not found :(")
+        end)
+
+        {:error, "Resource not found"}
 
       {:ok, %HTTPoison.Response{status_code: 500}} ->
         IO.puts("Internal server error at magicthegathering.io :(")
