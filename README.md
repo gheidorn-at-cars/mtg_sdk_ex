@@ -1,6 +1,6 @@
 # MtgSdkEx
 
-**TODO: Add description**
+[![Coverage Status](https://coveralls.io/repos/github/gheidorn/mtg_sdk_ex/badge.svg?branch=master)](https://coveralls.io/github/gheidorn/mtg_sdk_ex?branch=master)
 
 ## Contracts
 
