@@ -32,4 +32,8 @@ defmodule MtgSdkExTest do
   test "can't find the set and return an error" do
     assert MtgSdkEx.set(1) == {:error, "Resource not found"}
   end
+
+  test "get all mtg game formats" do
+    assert length(MtgSdkEx.formats()) > 0
+  end
 end

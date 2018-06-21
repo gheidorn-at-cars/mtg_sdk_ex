@@ -118,7 +118,7 @@ defmodule MtgSdkEx do
     end
   end
 
-  @doc "returns the name of the artist given a card id"
+  @doc "returns a list of cards by set"
   def cards_by_set(set_code, opts \\ []) do
     page_num = Keyword.get(opts, :page_num, 1)
     page_size = Keyword.get(opts, :page_size, 100)
@@ -140,6 +140,41 @@ defmodule MtgSdkEx do
           {:cards, cards},
           {:num_cards_in_page, length(cards)}
         ]
+
+      {:ok, %HTTPoison.Response{status_code: 400}} ->
+        IO.puts("Bad request :(")
+        {:error, "Bad request"}
+
+      {:ok, %HTTPoison.Response{status_code: 403}} ->
+        IO.puts("Rate limit exceeded :(")
+        {:error, "Rate limit exceeded"}
+
+      {:ok, %HTTPoison.Response{status_code: 404}} ->
+        IO.puts("Not found :(")
+        {:error, "Card not found"}
+
+      {:ok, %HTTPoison.Response{status_code: 500}} ->
+        IO.puts("Internal server error at magicthegathering.io :(")
+        {:error, "Internal server error at magicthegathering.io"}
+
+      {:ok, %HTTPoison.Response{status_code: 503}} ->
+        IO.puts("magicthegathering.io is offline for maintenance :(")
+        {:error, "magicthegathering.io is offline for maintenance"}
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        IO.inspect(reason)
+        {:error, "Internal error with mtg_sdk_ex, please report an issue on github"}
+    end
+  end
+
+  @doc "returns a list of cards by set"
+  def formats() do
+    url = "https://api.magicthegathering.io/v1/formats"
+
+    case HTTPoison.get(url) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: headers}} ->
+        # convert list of header key-value pairs to a map to find the total count
+        Poison.decode!(body)["formats"]
 
       {:ok, %HTTPoison.Response{status_code: 400}} ->
         IO.puts("Bad request :(")
