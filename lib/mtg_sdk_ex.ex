@@ -2,21 +2,8 @@ defmodule MtgSdkEx do
   require Logger
 
   @moduledoc """
-  Documentation for MtgSdkEx.
+  MtgSdkEx module provides functions that make calls to magicthegathering.io for game information.
   """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> MtgSdkEx.hello
-      :world
-
-  """
-  def hello do
-    :world
-  end
 
   @doc "returns the name of the artist given a card id"
   def artist(card_id) do
@@ -174,6 +161,40 @@ defmodule MtgSdkEx do
     case HTTPoison.get(url) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         Poison.decode!(body)["formats"]
+
+      {:ok, %HTTPoison.Response{status_code: 400}} ->
+        IO.puts("Bad request :(")
+        {:error, "Bad request"}
+
+      {:ok, %HTTPoison.Response{status_code: 403}} ->
+        IO.puts("Rate limit exceeded :(")
+        {:error, "Rate limit exceeded"}
+
+      {:ok, %HTTPoison.Response{status_code: 404}} ->
+        IO.puts("Not found :(")
+        {:error, "Card not found"}
+
+      {:ok, %HTTPoison.Response{status_code: 500}} ->
+        IO.puts("Internal server error at magicthegathering.io :(")
+        {:error, "Internal server error at magicthegathering.io"}
+
+      {:ok, %HTTPoison.Response{status_code: 503}} ->
+        IO.puts("magicthegathering.io is offline for maintenance :(")
+        {:error, "magicthegathering.io is offline for maintenance"}
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        IO.inspect(reason)
+        {:error, "Internal error with mtg_sdk_ex, please report an issue on github"}
+    end
+  end
+
+  @doc "returns a list of strings representing the types of MTG cards"
+  def types() do
+    url = "https://api.magicthegathering.io/v1/types"
+
+    case HTTPoison.get(url) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        Poison.decode!(body)["types"]
 
       {:ok, %HTTPoison.Response{status_code: 400}} ->
         IO.puts("Bad request :(")
