@@ -5,17 +5,11 @@ defmodule MtgSdkEx do
   MtgSdkEx module provides functions that make calls to magicthegathering.io for game information.
   """
 
-  @doc "returns the name of the artist given a card id"
-  def artist(card_id) do
-    url = "https://api.magicthegathering.io/v1/cards/#{card_id}"
-
+  # template function that makes the actual http call and handles the response
+  defp call_api(url, f) do
     case HTTPoison.get(url) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        Logger.info(fn ->
-          IO.puts(body)
-        end)
-
-        Poison.decode!(body)["card"]["artist"]
+      {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: headers}} ->
+        f.(headers, body)
 
       {:ok, %HTTPoison.Response{status_code: 400}} ->
         Logger.error(fn ->
@@ -36,73 +30,72 @@ defmodule MtgSdkEx do
         {:error, "Resource not found"}
 
       {:ok, %HTTPoison.Response{status_code: 500}} ->
-        IO.puts("Internal server error at magicthegathering.io :(")
+        Logger.error(fn ->
+          IO.puts("Internal server error at magicthegathering.io :(")
+        end)
+
         {:error, "Internal server error at magicthegathering.io"}
 
       {:ok, %HTTPoison.Response{status_code: 503}} ->
-        IO.puts("magicthegathering.io is offline for maintenance :(")
+        Logger.error(fn ->
+          IO.puts("magicthegathering.io is offline for maintenance :(")
+        end)
+
         {:error, "magicthegathering.io is offline for maintenance"}
 
       {:error, %HTTPoison.Error{reason: reason}} ->
-        IO.inspect(reason)
+        Logger.error(fn ->
+          IO.inspect(reason)
+        end)
+
         {:error, "Internal error with mtg_sdk_ex, please report an issue on github"}
     end
+  end
+
+  @doc "returns the name of the artist given a card id"
+  def artist(card_id) do
+    url = "https://api.magicthegathering.io/v1/cards/#{card_id}"
+
+    handle_200 = fn headers, body ->
+      Logger.info(fn ->
+        IO.puts(body)
+        rate_limit_remaining = Enum.into(headers, %{})["Ratelimit-Remaining"]
+        IO.puts("Ratelimit-Remaining #{rate_limit_remaining}")
+      end)
+
+      Poison.decode!(body)["card"]["artist"]
+    end
+
+    call_api(url, handle_200)
   end
 
   @doc "returns the name of the artist given a card id"
   def set(set_code) do
     url = "https://api.magicthegathering.io/v1/sets/#{set_code}"
 
-    case HTTPoison.get(url) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        set = Poison.decode!(body)["set"]
+    handle_200 = fn headers, body ->
+      set = Poison.decode!(body)["set"]
 
-        Logger.info(fn ->
-          IO.puts(set)
-        end)
+      Logger.info(fn ->
+        IO.puts(set)
+        rate_limit_remaining = Enum.into(headers, %{})["Ratelimit-Remaining"]
+        IO.puts("Ratelimit-Remaining #{rate_limit_remaining}")
+      end)
 
-        %MagicSet{
-          block: set["block"],
-          border: set["border"],
-          code: set["code"],
-          magic_cards_info_code: set["magicCardsInfoCode"],
-          mkm_id: set["mkm_id"],
-          mkm_name: set["mkm_name"],
-          name: set["name"],
-          release_date: set["releaseDate"],
-          type: set["type"]
-        }
-
-      {:ok, %HTTPoison.Response{status_code: 400}} ->
-        Logger.info(fn ->
-          IO.puts("Bad request :(")
-        end)
-
-        {:error, "Bad request"}
-
-      {:ok, %HTTPoison.Response{status_code: 403}} ->
-        IO.puts("Rate limit exceeded :(")
-        {:error, "Rate limit exceeded"}
-
-      {:ok, %HTTPoison.Response{status_code: 404}} ->
-        Logger.info(fn ->
-          IO.puts("Not found :(")
-        end)
-
-        {:error, "Resource not found"}
-
-      {:ok, %HTTPoison.Response{status_code: 500}} ->
-        IO.puts("Internal server error at magicthegathering.io :(")
-        {:error, "Internal server error at magicthegathering.io"}
-
-      {:ok, %HTTPoison.Response{status_code: 503}} ->
-        IO.puts("magicthegathering.io is offline for maintenance :(")
-        {:error, "magicthegathering.io is offline for maintenance"}
-
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        IO.inspect(reason)
-        {:error, "Internal error with mtg_sdk_ex, please report an issue on github"}
+      %MagicSet{
+        block: set["block"],
+        border: set["border"],
+        code: set["code"],
+        magic_cards_info_code: set["magicCardsInfoCode"],
+        mkm_id: set["mkm_id"],
+        mkm_name: set["mkm_name"],
+        name: set["name"],
+        release_date: set["releaseDate"],
+        type: set["type"]
+      }
     end
+
+    call_api(url, handle_200)
   end
 
   @doc "returns a list of cards by set"
@@ -115,178 +108,85 @@ defmodule MtgSdkEx do
         page_size
       }"
 
-    cards = nil
+    handle_200 = fn headers, body ->
+      # convert list of header key-value pairs to a map to find the total count
+      cards = Poison.decode!(body)["cards"]
 
-    case HTTPoison.get(url) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: headers}} ->
-        # convert list of header key-value pairs to a map to find the total count
-        cards = Poison.decode!(body)["cards"]
-
-        [
-          {:num_cards_in_set, String.to_integer(Enum.into(headers, %{})["Total-Count"])},
-          {:cards, cards},
-          {:num_cards_in_page, length(cards)}
-        ]
-
-      {:ok, %HTTPoison.Response{status_code: 400}} ->
-        IO.puts("Bad request :(")
-        {:error, "Bad request"}
-
-      {:ok, %HTTPoison.Response{status_code: 403}} ->
-        IO.puts("Rate limit exceeded :(")
-        {:error, "Rate limit exceeded"}
-
-      {:ok, %HTTPoison.Response{status_code: 404}} ->
-        IO.puts("Not found :(")
-        {:error, "Card not found"}
-
-      {:ok, %HTTPoison.Response{status_code: 500}} ->
-        IO.puts("Internal server error at magicthegathering.io :(")
-        {:error, "Internal server error at magicthegathering.io"}
-
-      {:ok, %HTTPoison.Response{status_code: 503}} ->
-        IO.puts("magicthegathering.io is offline for maintenance :(")
-        {:error, "magicthegathering.io is offline for maintenance"}
-
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        IO.inspect(reason)
-        {:error, "Internal error with mtg_sdk_ex, please report an issue on github"}
+      [
+        {:num_cards_in_set, String.to_integer(Enum.into(headers, %{})["Total-Count"])},
+        {:cards, cards},
+        {:num_cards_in_page, length(cards)}
+      ]
     end
+
+    call_api(url, handle_200)
   end
 
   @doc "returns a list of strings representing the formats of MTG"
   def formats() do
     url = "https://api.magicthegathering.io/v1/formats"
 
-    case HTTPoison.get(url) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        Poison.decode!(body)["formats"]
+    handle_200 = fn headers, body ->
+      Logger.info(fn ->
+        IO.puts(body)
+        rate_limit_remaining = Enum.into(headers, %{})["Ratelimit-Remaining"]
+        IO.puts("Ratelimit-Remaining #{rate_limit_remaining}")
+      end)
 
-      {:ok, %HTTPoison.Response{status_code: 400}} ->
-        IO.puts("Bad request :(")
-        {:error, "Bad request"}
-
-      {:ok, %HTTPoison.Response{status_code: 403}} ->
-        IO.puts("Rate limit exceeded :(")
-        {:error, "Rate limit exceeded"}
-
-      {:ok, %HTTPoison.Response{status_code: 404}} ->
-        IO.puts("Not found :(")
-        {:error, "Card not found"}
-
-      {:ok, %HTTPoison.Response{status_code: 500}} ->
-        IO.puts("Internal server error at magicthegathering.io :(")
-        {:error, "Internal server error at magicthegathering.io"}
-
-      {:ok, %HTTPoison.Response{status_code: 503}} ->
-        IO.puts("magicthegathering.io is offline for maintenance :(")
-        {:error, "magicthegathering.io is offline for maintenance"}
-
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        IO.inspect(reason)
-        {:error, "Internal error with mtg_sdk_ex, please report an issue on github"}
+      Poison.decode!(body)["formats"]
     end
+
+    call_api(url, handle_200)
   end
 
   @doc "returns a list of strings representing the types of MTG cards"
   def types() do
     url = "https://api.magicthegathering.io/v1/types"
 
-    case HTTPoison.get(url) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        Poison.decode!(body)["types"]
+    handle_200 = fn headers, body ->
+      Logger.info(fn ->
+        IO.puts(body)
+        rate_limit_remaining = Enum.into(headers, %{})["Ratelimit-Remaining"]
+        IO.puts("Ratelimit-Remaining #{rate_limit_remaining}")
+      end)
 
-      {:ok, %HTTPoison.Response{status_code: 400}} ->
-        IO.puts("Bad request :(")
-        {:error, "Bad request"}
-
-      {:ok, %HTTPoison.Response{status_code: 403}} ->
-        IO.puts("Rate limit exceeded :(")
-        {:error, "Rate limit exceeded"}
-
-      {:ok, %HTTPoison.Response{status_code: 404}} ->
-        IO.puts("Not found :(")
-        {:error, "Card not found"}
-
-      {:ok, %HTTPoison.Response{status_code: 500}} ->
-        IO.puts("Internal server error at magicthegathering.io :(")
-        {:error, "Internal server error at magicthegathering.io"}
-
-      {:ok, %HTTPoison.Response{status_code: 503}} ->
-        IO.puts("magicthegathering.io is offline for maintenance :(")
-        {:error, "magicthegathering.io is offline for maintenance"}
-
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        IO.inspect(reason)
-        {:error, "Internal error with mtg_sdk_ex, please report an issue on github"}
+      Poison.decode!(body)["types"]
     end
+
+    call_api(url, handle_200)
   end
 
   @doc "returns a list of strings representing the subtypes of MTG cards"
   def subtypes() do
     url = "https://api.magicthegathering.io/v1/subtypes"
 
-    case HTTPoison.get(url) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        Poison.decode!(body)["subtypes"]
+    handle_200 = fn headers, body ->
+      Logger.info(fn ->
+        IO.puts(body)
+        rate_limit_remaining = Enum.into(headers, %{})["Ratelimit-Remaining"]
+        IO.puts("Ratelimit-Remaining #{rate_limit_remaining}")
+      end)
 
-      {:ok, %HTTPoison.Response{status_code: 400}} ->
-        IO.puts("Bad request :(")
-        {:error, "Bad request"}
-
-      {:ok, %HTTPoison.Response{status_code: 403}} ->
-        IO.puts("Rate limit exceeded :(")
-        {:error, "Rate limit exceeded"}
-
-      {:ok, %HTTPoison.Response{status_code: 404}} ->
-        IO.puts("Not found :(")
-        {:error, "Card not found"}
-
-      {:ok, %HTTPoison.Response{status_code: 500}} ->
-        IO.puts("Internal server error at magicthegathering.io :(")
-        {:error, "Internal server error at magicthegathering.io"}
-
-      {:ok, %HTTPoison.Response{status_code: 503}} ->
-        IO.puts("magicthegathering.io is offline for maintenance :(")
-        {:error, "magicthegathering.io is offline for maintenance"}
-
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        IO.inspect(reason)
-        {:error, "Internal error with mtg_sdk_ex, please report an issue on github"}
+      Poison.decode!(body)["subtypes"]
     end
+
+    call_api(url, handle_200)
   end
 
   @doc "returns a list of strings representing the supertypes of MTG cards"
   def supertypes() do
     url = "https://api.magicthegathering.io/v1/supertypes"
 
-    case HTTPoison.get(url) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        Poison.decode!(body)["supertypes"]
+    handle_200 = fn headers, body ->
+      Logger.info(fn ->
+        IO.puts(body)
+        rate_limit_remaining = Enum.into(headers, %{})["Ratelimit-Remaining"]
+        IO.puts("Ratelimit-Remaining #{rate_limit_remaining}")
+      end)
 
-      {:ok, %HTTPoison.Response{status_code: 400}} ->
-        IO.puts("Bad request :(")
-        {:error, "Bad request"}
-
-      {:ok, %HTTPoison.Response{status_code: 403}} ->
-        IO.puts("Rate limit exceeded :(")
-        {:error, "Rate limit exceeded"}
-
-      {:ok, %HTTPoison.Response{status_code: 404}} ->
-        IO.puts("Not found :(")
-        {:error, "Card not found"}
-
-      {:ok, %HTTPoison.Response{status_code: 500}} ->
-        IO.puts("Internal server error at magicthegathering.io :(")
-        {:error, "Internal server error at magicthegathering.io"}
-
-      {:ok, %HTTPoison.Response{status_code: 503}} ->
-        IO.puts("magicthegathering.io is offline for maintenance :(")
-        {:error, "magicthegathering.io is offline for maintenance"}
-
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        IO.inspect(reason)
-        {:error, "Internal error with mtg_sdk_ex, please report an issue on github"}
+      Poison.decode!(body)["supertypes"]
     end
+
+    call_api(url, handle_200)
   end
 end
