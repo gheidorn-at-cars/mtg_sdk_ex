@@ -36,4 +36,12 @@ defmodule MtgSdkExTest do
   test "get all mtg game formats" do
     assert length(MtgSdkEx.formats()) > 0
   end
+
+  test "get all mtg card subtypes" do
+    assert length(MtgSdkEx.subtypes()) > 0
+  end
+
+  test "get all mtg card supertypes" do
+    assert length(MtgSdkEx.supertypes()) > 0
+  end
 end
