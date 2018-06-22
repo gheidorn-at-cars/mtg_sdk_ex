@@ -2,6 +2,10 @@ defmodule MtgSdkExTest do
   use ExUnit.Case
   doctest MtgSdkEx
 
+  test "find a card and return it" do
+    assert MtgSdkEx.card(1)
+  end
+
   test "finds a card and returns the artist name" do
     assert MtgSdkEx.artist(1) == "Amy Weber"
     assert MtgSdkEx.artist(2) == "Jesper Myrfors"

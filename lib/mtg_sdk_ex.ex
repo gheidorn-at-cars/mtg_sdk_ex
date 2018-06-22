@@ -69,6 +69,23 @@ defmodule MtgSdkEx do
     call_api(url, handle_200)
   end
 
+  @doc "returns the information for a card given a card multiverse id"
+  def card(multiverse_id) do
+    url = "https://api.magicthegathering.io/v1/cards/#{multiverse_id}"
+
+    handle_200 = fn headers, body ->
+      Logger.info(fn ->
+        IO.puts(body)
+        rate_limit_remaining = Enum.into(headers, %{})["Ratelimit-Remaining"]
+        IO.puts("Ratelimit-Remaining #{rate_limit_remaining}")
+      end)
+
+      Poison.decode!(body)["card"]
+    end
+
+    call_api(url, handle_200)
+  end
+
   @doc "returns the name of the artist given a card id"
   def set(set_code) do
     url = "https://api.magicthegathering.io/v1/sets/#{set_code}"
