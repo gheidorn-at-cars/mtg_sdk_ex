@@ -1,8 +1,8 @@
-defmodule MtgSdkEx do
+defmodule Mtg do
   require Logger
 
   @moduledoc """
-  MtgSdkEx module provides functions that make calls to magicthegathering.io for game information.
+  Mtg module provides functions that make calls to magicthegathering.io for game information.
   """
 
   # template function that makes the actual http call and handles the response

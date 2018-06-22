@@ -1,8 +1,4 @@
-# MtgSdkEx
-
-[![Build Status](https://travis-ci.org/gheidorn/mtg_sdk_ex.svg?branch=master)](https://travis-ci.org/gheidorn/mtg_sdk_ex)
-
-[![Coverage Status](https://coveralls.io/repos/github/gheidorn/mtg_sdk_ex/badge.svg?branch=master)](https://coveralls.io/github/gheidorn/mtg_sdk_ex?branch=master)
+# MtgSdkEx [![Build Status](https://travis-ci.org/gheidorn/mtg_sdk_ex.svg?branch=master)](https://travis-ci.org/gheidorn/mtg_sdk_ex) [![Coverage Status](https://coveralls.io/repos/github/gheidorn/mtg_sdk_ex/badge.svg?branch=master)](https://coveralls.io/github/gheidorn/mtg_sdk_ex?branch=master)
 
 ## Contracts
 
