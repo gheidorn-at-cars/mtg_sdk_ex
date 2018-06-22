@@ -49,7 +49,8 @@ defmodule MtgSdkEx.MixProject do
     [
       {:poison, "~> 3.1"},
       {:httpoison, "~> 1.1"},
-      {:excoveralls, "~> 0.8", only: :test}
+      {:excoveralls, "~> 0.8", only: :test},
+      {:mock, "~> 0.3.0", only: :test}
     ]
   end
 end
