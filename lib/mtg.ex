@@ -116,6 +116,32 @@ defmodule Mtg do
   end
 
   @doc "returns a list of cards by set"
+  def cards(opts \\ []) do
+    name = Keyword.get(opts, :name, "")
+    layout = Keyword.get(opts, :layout, "")
+    page_num = Keyword.get(opts, :page_num, 1)
+    page_size = Keyword.get(opts, :page_size, 100)
+
+    url =
+      "https://api.magicthegathering.io/v1/cards?name=#{name}&layout=#{layout}&page=#{page_num}&pageSize=#{
+        page_size
+      }"
+
+    handle_200 = fn headers, body ->
+      # convert list of header key-value pairs to a map to find the total count
+      cards = Poison.decode!(body)["cards"]
+
+      [
+        {:num_cards_in_set, String.to_integer(Enum.into(headers, %{})["Total-Count"])},
+        {:cards, cards},
+        {:num_cards_in_page, length(cards)}
+      ]
+    end
+
+    call_api(url, handle_200)
+  end
+
+  @doc "returns a list of cards by set"
   def cards_by_set(set_code, opts \\ []) do
     page_num = Keyword.get(opts, :page_num, 1)
     page_size = Keyword.get(opts, :page_size, 100)

@@ -33,6 +33,14 @@ defmodule MtgTest do
     assert Mtg.set(1) == {:error, "Resource not found"}
   end
 
+  test "returns the first 100 cards" do
+    assert List.keyfind(Mtg.cards(), :num_cards_in_page, 0) == {:num_cards_in_page, 100}
+  end
+
+  test "returns the first 5 cards" do
+    assert List.keyfind(Mtg.cards(page_size: 5), :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+  end
+
   test "get all mtg game formats" do
     assert length(Mtg.formats()) > 0
   end
