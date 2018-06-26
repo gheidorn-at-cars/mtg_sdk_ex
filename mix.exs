@@ -33,7 +33,7 @@ defmodule MtgSdkEx.MixProject do
       files: ["lib", "mix.exs", "README*", "LICENSE*"],
       maintainers: ["greg.heidorn@gmail.com"],
       licenses: ["GPL 3.0"],
-      links: %{"GitHub" => "https://github.com/gheidorn/mtg_sdx_ex"}
+      links: %{"GitHub" => "https://github.com/gheidorn/mtg_sdk_ex"}
     ]
   end
 
@@ -50,7 +50,8 @@ defmodule MtgSdkEx.MixProject do
       {:poison, "~> 3.1"},
       {:httpoison, "~> 1.1"},
       {:excoveralls, "~> 0.8", only: :test},
-      {:mock, "~> 0.3.0", only: :test}
+      {:mock, "~> 0.3.0", only: :test},
+      {:ex_doc, "~> 0.14", only: :dev}
     ]
   end
 end
