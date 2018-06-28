@@ -66,6 +66,18 @@ defmodule MtgTest do
     |> Enum.each(fn {e, _} -> assert e["rarity"] == "Rare" end)
   end
 
+  test "returns the first 5 cards with type 'Legendary', case insensitive" do
+    response = Mtg.cards(page_size: 5, type: "legendary")
+
+    assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+
+    cards = elem(List.keyfind(response, :cards, 0), 1)
+
+    cards
+    |> Enum.with_index()
+    |> Enum.each(fn {e, _} -> assert String.contains?(String.downcase(e["type"]), "legendary") end)
+  end
+
   test "returns the first 5 cards with text 'hexproof', case insensitive" do
     response = Mtg.cards(page_size: 5, text: "hexproof")
 
