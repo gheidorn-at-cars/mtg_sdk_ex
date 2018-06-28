@@ -34,34 +34,63 @@ defmodule MtgTest do
     assert Mtg.set(1) == {:error, "Resource not found"}
   end
 
-  test "returns the first 100 cards" do
+  '''
+  Testing /cards
+  '''
+
+  test "testing the page num parameter" do
     assert List.keyfind(Mtg.cards(), :num_cards_in_page, 0) == {:num_cards_in_page, 100}
-  end
-
-  test "returns the first 5 cards" do
     assert List.keyfind(Mtg.cards(page_size: 5), :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+
+    assert List.keyfind(Mtg.cards(page_size: 10), :num_cards_in_page, 0) ==
+             {:num_cards_in_page, 10}
   end
 
-  test "returns the first 5 cards with CMC 3" do
-    response = Mtg.cards(page_size: 5, cmc: 3)
-
+  test "testing the artist parameter; returns the first 5 cards illustrated by Christopher Rush" do
+    response = Mtg.cards(page_size: 5, artist: "Christopher Rush")
     assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
 
-    cards = elem(List.keyfind(response, :cards, 0), 1)
+    elem(List.keyfind(response, :cards, 0), 1)
+    |> Enum.with_index()
+    |> Enum.each(fn {e, _} -> assert e["artist"] == "Christopher Rush" end)
+  end
 
-    cards
+  test "testing the cmc parameter; returns the first 5 cards with CMC 3" do
+    response = Mtg.cards(page_size: 5, cmc: 3)
+    assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+
+    elem(List.keyfind(response, :cards, 0), 1)
     |> Enum.with_index()
     |> Enum.each(fn {e, _} -> assert e["cmc"] == 3 end)
   end
 
-  test "returns the first 5 cards with rarity 'Rare'" do
-    response = Mtg.cards(page_size: 5, rarity: "Rare")
-
+  test "testing the types parameter; returns the first 5 cards that are of type Instant" do
+    response = Mtg.cards(page_size: 5, types: "Instant")
     assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
 
-    cards = elem(List.keyfind(response, :cards, 0), 1)
+    elem(List.keyfind(response, :cards, 0), 1)
+    |> Enum.with_index()
+    |> Enum.each(fn {e, _} -> assert Enum.join(e["types"], ",") == "Instant" end)
 
-    cards
+    # there are no cards with both types Instant and Sorcery
+    response = Mtg.cards(page_size: 5, types: "Instant,Sorcery")
+    assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 0}
+    assert List.keyfind(response, :cards, 0) == {:cards, []}
+
+    # there's one card with both types Creature and Land
+    response = Mtg.cards(page_size: 5, types: "Creature,Land")
+    assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 2}
+
+    elem(List.keyfind(response, :cards, 0), 1)
+    |> Enum.with_index()
+    |> Enum.each(fn {e, _} -> assert e["name"] == "Dryad Arbor" end)
+  end
+
+  test "testing the rarity parameter; returns the first 5 cards with rarity 'Rare'" do
+    response = Mtg.cards(page_size: 5, rarity: "Rare")
+    assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+
+    elem(List.keyfind(response, :cards, 0), 1)
     |> Enum.with_index()
     |> Enum.each(fn {e, _} -> assert e["rarity"] == "Rare" end)
   end

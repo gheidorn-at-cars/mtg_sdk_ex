@@ -121,22 +121,40 @@ defmodule Mtg do
 
   @doc "returns a list of cards by set"
   def cards(opts \\ []) do
-    name = Keyword.get(opts, :name, nil)
-    layout = Keyword.get(opts, :layout, nil)
-    cmc = Keyword.get(opts, :cmc, nil)
-    colors = Keyword.get(opts, :colors, nil)
-    color_identity = Keyword.get(opts, :color_identity, nil)
-    type = Keyword.get(opts, :type, nil)
-    supertypes = Keyword.get(opts, :supertypes, nil)
-    types = Keyword.get(opts, :types, nil)
-    subtypes = Keyword.get(opts, :subtypes, nil)
-    rarity = Keyword.get(opts, :rarity, nil)
-    set = Keyword.get(opts, :set, nil)
-    set_name = Keyword.get(opts, :set_name, nil)
-    text = Keyword.get(opts, :text, nil)
-    flavor = Keyword.get(opts, :flavor, nil)
-    page_num = Keyword.get(opts, :page_num, 1)
-    page_size = Keyword.get(opts, :page_size, 100)
+    params =
+      [
+        {:artist, Keyword.get(opts, :artist, nil)},
+        {:name, Keyword.get(opts, :name, nil)},
+        {:layout, Keyword.get(opts, :layout, nil)},
+        {:cmc, Keyword.get(opts, :cmc, nil)},
+        {:colors, Keyword.get(opts, :colors, nil)},
+        {:colorIdentity, Keyword.get(opts, :color_identity, nil)},
+        {:supertypes, Keyword.get(opts, :supertypes, nil)},
+        {:types, Keyword.get(opts, :types, nil)},
+        {:subtypes, Keyword.get(opts, :subtypes, nil)},
+        {:type, Keyword.get(opts, :type, nil)},
+        {:rarity, Keyword.get(opts, :rarity, nil)},
+        {:set, Keyword.get(opts, :set, nil)},
+        {:setName, Keyword.get(opts, :set_name, nil)},
+        {:text, Keyword.get(opts, :text, nil)},
+        {:flavor, Keyword.get(opts, :flavor, nil)},
+        {:number, Keyword.get(opts, :number, nil)},
+        {:power, Keyword.get(opts, :power, nil)},
+        {:toughness, Keyword.get(opts, :toughness, nil)},
+        {:loyalty, Keyword.get(opts, :loyalty, nil)},
+        {:language, Keyword.get(opts, :language, nil)},
+        {:gameFormat, Keyword.get(opts, :game_format, nil)},
+        {:legality, Keyword.get(opts, :legality, nil)},
+        {:orderBy, Keyword.get(opts, :order_by, nil)},
+        {:random, Keyword.get(opts, :random, nil)},
+        {:contains, Keyword.get(opts, :contains, nil)},
+        # a unique id for a card built as a SHA1 hash of setCode, cardName, cardImageName
+        {:id, Keyword.get(opts, :id, nil)},
+        {:multiverseId, Keyword.get(opts, :multiverse_id, nil)},
+        {:page, Keyword.get(opts, :page_num, 1)},
+        {:pageSize, Keyword.get(opts, :page_size, 100)}
+      ]
+      |> Enum.filter(fn {_, v} -> v != nil end)
 
     url = "https://api.magicthegathering.io/v1/cards"
 
@@ -150,27 +168,6 @@ defmodule Mtg do
         {:num_cards_in_page, length(cards)}
       ]
     end
-
-    params =
-      [
-        {:name, name},
-        {:layout, layout},
-        {:cmc, cmc},
-        {:colors, colors},
-        {:colorIdentity, color_identity},
-        {:supertypes, supertypes},
-        {:types, types},
-        {:subtypes, subtypes},
-        {:type, type},
-        {:rarity, rarity},
-        {:set, set},
-        {:setName, set_name},
-        {:text, text},
-        {:flavor, flavor},
-        {:page, page_num},
-        {:pageSize, page_size}
-      ]
-      |> Enum.filter(fn {_, v} -> v != nil end)
 
     call_api(url, handle_200, params)
   end
