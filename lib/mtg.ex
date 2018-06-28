@@ -6,9 +6,11 @@ defmodule Mtg do
   """
 
   # template function that makes the actual http call and handles the response
-  defp call_api(url, f) do
-    case HTTPoison.get(url) do
+  defp call_api(url, f, params \\ []) do
+    case HTTPoison.get(url, [], params: params) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: headers}} ->
+        Logger.info(fn -> IO.inspect(headers) end)
+
         f.(headers, body)
 
       {:ok, %HTTPoison.Response{status_code: 400}} ->
@@ -19,8 +21,10 @@ defmodule Mtg do
         {:error, "Bad request"}
 
       {:ok, %HTTPoison.Response{status_code: 403}} ->
-        IO.puts("Rate limit exceeded :(")
-        {:error, "Rate limit exceeded"}
+        Logger.error(fn ->
+          IO.puts("Rate limit exceeded :(")
+          {:error, "Rate limit exceeded"}
+        end)
 
       {:ok, %HTTPoison.Response{status_code: 404}} ->
         Logger.info(fn ->
@@ -117,15 +121,24 @@ defmodule Mtg do
 
   @doc "returns a list of cards by set"
   def cards(opts \\ []) do
-    name = Keyword.get(opts, :name, "")
-    layout = Keyword.get(opts, :layout, "")
+    name = Keyword.get(opts, :name, nil)
+    layout = Keyword.get(opts, :layout, nil)
+    cmc = Keyword.get(opts, :cmc, nil)
+    colors = Keyword.get(opts, :colors, nil)
+    color_identity = Keyword.get(opts, :color_identity, nil)
+    type = Keyword.get(opts, :type, nil)
+    supertypes = Keyword.get(opts, :supertypes, nil)
+    types = Keyword.get(opts, :types, nil)
+    subtypes = Keyword.get(opts, :subtypes, nil)
+    rarity = Keyword.get(opts, :rarity, nil)
+    set = Keyword.get(opts, :set, nil)
+    set_name = Keyword.get(opts, :set_name, nil)
+    text = Keyword.get(opts, :text, nil)
+    flavor = Keyword.get(opts, :flavor, nil)
     page_num = Keyword.get(opts, :page_num, 1)
     page_size = Keyword.get(opts, :page_size, 100)
 
-    url =
-      "https://api.magicthegathering.io/v1/cards?name=#{name}&layout=#{layout}&page=#{page_num}&pageSize=#{
-        page_size
-      }"
+    url = "https://api.magicthegathering.io/v1/cards"
 
     handle_200 = fn headers, body ->
       # convert list of header key-value pairs to a map to find the total count
@@ -138,7 +151,28 @@ defmodule Mtg do
       ]
     end
 
-    call_api(url, handle_200)
+    params =
+      [
+        {:name, name},
+        {:layout, layout},
+        {:cmc, cmc},
+        {:colors, colors},
+        {:colorIdentity, color_identity},
+        {:supertypes, supertypes},
+        {:types, types},
+        {:subtypes, subtypes},
+        {:type, type},
+        {:rarity, rarity},
+        {:set, set},
+        {:setName, set_name},
+        {:text, text},
+        {:flavor, flavor},
+        {:page, page_num},
+        {:pageSize, page_size}
+      ]
+      |> Enum.filter(fn {_, v} -> v != nil end)
+
+    call_api(url, handle_200, params)
   end
 
   @doc "returns a list of cards by set"

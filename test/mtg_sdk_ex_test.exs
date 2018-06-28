@@ -1,6 +1,7 @@
 defmodule MtgTest do
   use ExUnit.Case
   doctest Mtg
+  require Logger
 
   test "find a card and return it" do
     assert Mtg.card(1)
@@ -39,6 +40,54 @@ defmodule MtgTest do
 
   test "returns the first 5 cards" do
     assert List.keyfind(Mtg.cards(page_size: 5), :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+  end
+
+  test "returns the first 5 cards with CMC 3" do
+    response = Mtg.cards(page_size: 5, cmc: 3)
+
+    assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+
+    cards = elem(List.keyfind(response, :cards, 0), 1)
+
+    cards
+    |> Enum.with_index()
+    |> Enum.each(fn {e, _} -> assert e["cmc"] == 3 end)
+  end
+
+  test "returns the first 5 cards with rarity 'Rare'" do
+    response = Mtg.cards(page_size: 5, rarity: "Rare")
+
+    assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+
+    cards = elem(List.keyfind(response, :cards, 0), 1)
+
+    cards
+    |> Enum.with_index()
+    |> Enum.each(fn {e, _} -> assert e["rarity"] == "Rare" end)
+  end
+
+  test "returns the first 5 cards with text 'hexproof', case insensitive" do
+    response = Mtg.cards(page_size: 5, text: "hexproof")
+
+    assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+
+    cards = elem(List.keyfind(response, :cards, 0), 1)
+
+    cards
+    |> Enum.with_index()
+    |> Enum.each(fn {e, _} -> assert String.contains?(String.downcase(e["text"]), "hexproof") end)
+  end
+
+  test "returns the first 5 cards with flavor 'Teferi'" do
+    response = Mtg.cards(page_size: 5, flavor: "Teferi")
+
+    assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+
+    cards = elem(List.keyfind(response, :cards, 0), 1)
+
+    cards
+    |> Enum.with_index()
+    |> Enum.each(fn {e, _} -> assert String.contains?(e["flavor"], "Teferi") end)
   end
 
   test "get all mtg game formats" do
