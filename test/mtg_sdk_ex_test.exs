@@ -86,6 +86,27 @@ defmodule MtgTest do
     |> Enum.each(fn {e, _} -> assert e["name"] == "Dryad Arbor" end)
   end
 
+  test "testing the colorIdentity parameter; returns the first 5 cards with colorIdentity 'G'" do
+    response = Mtg.cards(page_size: 5, color_identity: "G")
+    assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+
+    elem(List.keyfind(response, :cards, 0), 1)
+    |> Enum.with_index()
+    |> Enum.each(fn {e, _} ->
+      assert String.contains?(Enum.join(e["colorIdentity"], ","), "G")
+    end)
+
+    response = Mtg.cards(page_size: 5, color_identity: "G,B")
+    assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
+
+    elem(List.keyfind(response, :cards, 0), 1)
+    |> Enum.with_index()
+    |> Enum.each(fn {e, _} ->
+      assert String.contains?(Enum.join(e["colorIdentity"], ","), "G")
+      assert String.contains?(Enum.join(e["colorIdentity"], ","), "B")
+    end)
+  end
+
   test "testing the rarity parameter; returns the first 5 cards with rarity 'Rare'" do
     response = Mtg.cards(page_size: 5, rarity: "Rare")
     assert List.keyfind(response, :num_cards_in_page, 0) == {:num_cards_in_page, 5}
