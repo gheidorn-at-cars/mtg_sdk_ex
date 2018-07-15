@@ -35,6 +35,22 @@ defmodule MtgTest do
   end
 
   '''
+  Testing /set
+  '''
+
+  test "test cards_by_set using valid set code" do
+    cards_by_set = Mtg.cards_by_set("AKH")
+    assert List.keyfind(cards_by_set, :num_cards_in_set, 0) == {:num_cards_in_set, 302}
+    assert List.keyfind(cards_by_set, :num_cards_in_page, 0) == {:num_cards_in_page, 100}
+  end
+
+  test "test cards_by_set using invalid set code" do
+    cards_by_set = Mtg.cards_by_set("ANK")
+    assert List.keyfind(cards_by_set, :num_cards_in_set, 0) == {:num_cards_in_set, 0}
+    assert List.keyfind(cards_by_set, :num_cards_in_page, 0) == {:num_cards_in_page, 0}
+  end
+
+  '''
   Testing /cards
   '''
 
