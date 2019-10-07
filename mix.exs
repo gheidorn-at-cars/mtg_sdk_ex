@@ -4,8 +4,8 @@ defmodule MtgSdkEx.MixProject do
   def project do
     [
       app: :mtg_sdk_ex,
-      version: "0.1.0",
-      elixir: "~> 1.6",
+      version: "0.1.1",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       description: description(),
       package: package(),
@@ -47,11 +47,11 @@ defmodule MtgSdkEx.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:poison, "~> 3.1"},
-      {:httpoison, "~> 1.1"},
-      {:excoveralls, "~> 0.8", only: :test},
-      {:mock, "~> 0.3.0", only: :test},
-      {:ex_doc, "~> 0.14", only: :dev}
+      {:poison, "~> 4.0"},
+      {:httpoison, "~> 1.6"},
+      {:excoveralls, "~> 0.11.2", only: :test},
+      {:mock, "~> 0.3.3", only: :test},
+      {:ex_doc, "~> 0.21.2"}
     ]
   end
 end
