@@ -7,7 +7,7 @@ defmodule Mtg do
 
   # template function that makes the actual http call and handles the response
   defp call_api(url, f, params \\ []) do
-    case HTTPoison.get(url, [], params: params) do
+    case HTTPoison.get(url, [], params: params, recv_timeout: 30000) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: headers}} ->
         Logger.info(fn -> IO.inspect(headers) end)
 
