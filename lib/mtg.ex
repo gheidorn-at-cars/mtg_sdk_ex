@@ -105,11 +105,11 @@ defmodule Mtg do
 
       %MagicSet{
         block: set["block"],
-        border: set["border"],
+        # border: set["border"],
         code: set["code"],
-        magic_cards_info_code: set["magicCardsInfoCode"],
-        mkm_id: set["mkm_id"],
-        mkm_name: set["mkm_name"],
+        # magic_cards_info_code: set["magicCardsInfoCode"],
+        # mkm_id: set["mkm_id"],
+        # mkm_name: set["mkm_name"],
         name: set["name"],
         release_date: set["releaseDate"],
         type: set["type"]

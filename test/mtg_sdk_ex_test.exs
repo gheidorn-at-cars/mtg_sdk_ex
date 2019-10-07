@@ -15,11 +15,11 @@ defmodule MtgTest do
   test "returns a list of cards for a given set code" do
     assert Mtg.set("ktk") == %MagicSet{
              block: "Khans of Tarkir",
-             border: "black",
+             #  border: "black",
              code: "KTK",
-             magic_cards_info_code: "ktk",
-             mkm_id: 1495,
-             mkm_name: "Khans of Tarkir",
+             #  magic_cards_info_code: "ktk",
+             #  mkm_id: 1495,
+             #  mkm_name: "Khans of Tarkir",
              name: "Khans of Tarkir",
              release_date: "2014-09-26",
              type: "expansion"
